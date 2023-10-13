@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strikesecurity/strikememongo/monitor"
-	"github.com/strikesecurity/strikememongo/strikememongolog"
+	"github.com/ariefdarmawan/strikememongo/monitor"
+	"github.com/ariefdarmawan/strikememongo/strikememongolog"
 )
 
 // Server represents a running MongoDB server
@@ -143,7 +143,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	// ---------- START OF REPLICA CODE ----------
 	if opts.ShouldUseReplica {
-		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
+		mongoCommand := fmt.Sprintf("mongosh --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
 		//nolint:gosec
 		cmd2 := exec.Command("bash", "-c", mongoCommand)
 		cmd2.Stdout = stdoutHandler

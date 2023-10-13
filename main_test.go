@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ariefdarmawan/strikememongo/strikememongolog"
 	"github.com/stretchr/testify/require"
-	"github.com/strikesecurity/strikememongo/strikememongolog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
