@@ -2,16 +2,16 @@ package monitor
 
 import (
 	"os"
-	"os/exec"
 	"testing"
 	"time"
 
+	"github.com/ariefdarmawan/strikememongo/memongohelper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func runSleep() *os.Process {
-	cmd := exec.Command("/bin/sh", "sleep", "10")
+	cmd := memongohelper.RunCommand("sleep", "10")
 
 	err := cmd.Start()
 	if err != nil {

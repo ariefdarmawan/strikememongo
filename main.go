@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ariefdarmawan/strikememongo/memongohelper"
 	"github.com/ariefdarmawan/strikememongo/monitor"
 	"github.com/ariefdarmawan/strikememongo/strikememongolog"
 )
@@ -145,7 +146,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	if opts.ShouldUseReplica {
 		mongoCommand := fmt.Sprintf("mongosh --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
 		//nolint:gosec
-		cmd2 := exec.Command("bash", "-c", mongoCommand)
+		cmd2 := memongohelper.RunCommand(mongoCommand)
 		cmd2.Stdout = stdoutHandler
 		cmd2.Stderr = stderrHandler(logger)
 
