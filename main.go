@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -54,10 +53,11 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	logger.Debugf("Using binary %s", binPath)
 
 	// Create a db dir. Even the ephemeralForTest engine needs a dbpath.
-	dbDir, err := ioutil.TempDir("", "")
+	dbDir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, err
 	}
+	logger.Infof("ephermeral db dir: %s", dbDir)
 
 	// Construct the command and attach stdout/stderr handlers
 
@@ -154,11 +154,31 @@ func StartWithOptions(opts *Options) (*Server, error) {
 		err2 := cmd2.Run()
 		if err2 != nil {
 			logger.Warnf("ERROR INITIAING REPLICA: %v", err2)
-
 			return nil, err
 		}
 
-		logger.Debugf("Started mongo replica")
+		/*
+			ctx := context.TODO()
+			connStr := fmt.Sprintf("mongodb://localhost:%d", opts.Port)
+			mOpts := options.Client().ApplyURI(connStr)
+			client, err := mongo.Connect(ctx, mOpts)
+			if err != nil {
+				logger.Warnf("ERROR to PREPARE REPLICA: %s", err.Error())
+				return nil, err
+			}
+			defer client.Disconnect(ctx)
+			db := client.Database("admin")
+			rsInitDoc := codekit.M{
+				"replSetInitiate": codekit.M{
+					"_id": "rs0",
+					//"members": []codekit.M{{"_id": 0, "host": fmt.Sprintf("localhost:%d", opts.Port)}},
+				}}
+			if sr := db.RunCommand(ctx, rsInitDoc); sr.Err() != nil {
+				logger.Warnf("ERROR to EXEC REPLICA CMD: %s", sr.Err().Error())
+				return nil, err
+			}
+		*/
+		logger.Debugf("Setup mongo as replica")
 	}
 	// ---------- END OF REPLICA CODE ----------
 
@@ -190,23 +210,24 @@ func (s *Server) URIWithRandomDB() string {
 
 // Stop kills the mongo server
 func (s *Server) Stop() {
-	err := s.cmd.Process.Kill()
-	if err != nil {
-		s.logger.Warnf("error stopping mongod process: %s", err)
-		return
-	}
-
-	err = s.watcherCmd.Process.Kill()
+	err := s.watcherCmd.Process.Kill()
 	if err != nil {
 		s.logger.Warnf("error stopping watcher process: %s", err)
-		return
+		//return
+	}
+
+	err = s.cmd.Process.Kill()
+	if err != nil {
+		s.logger.Warnf("error stopping mongod process: %s", err)
+		//return
 	}
 
 	err = os.RemoveAll(s.dbDir)
 	if err != nil {
 		s.logger.Warnf("error removing data directory: %s", err)
-		return
+		//return
 	}
+	s.logger.Infof("db dir: %s has been removed", s.dbDir)
 }
 
 // Cribbed from https://github.com/nodkz/mongodb-memory-server/blob/master/packages/mongodb-memory-server-core/src/util/MongoInstance.ts#L206
