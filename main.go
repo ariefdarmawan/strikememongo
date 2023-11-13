@@ -53,7 +53,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	logger.Debugf("Using binary %s", binPath)
 
 	// Create a db dir. Even the ephemeralForTest engine needs a dbpath.
-	dbDir, err := os.MkdirTemp("", "")
+	dbDir, err := os.MkdirTemp(opts.TempDirFolder, opts.TempDirPattern)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,9 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
-	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
+	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest",
+		//"--enableMajorityReadConcern", "false",
+		"--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
 	if opts.ShouldUseReplica {
 		//nolint:gosec
 		cmd = exec.Command(binPath, "--storageEngine", "wiredTiger", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
@@ -222,10 +224,11 @@ func (s *Server) Stop() {
 		//return
 	}
 
+	time.Sleep(100 * time.Millisecond)
 	err = os.RemoveAll(s.dbDir)
 	if err != nil {
 		s.logger.Warnf("error removing data directory: %s", err)
-		//return
+		return
 	}
 	s.logger.Infof("db dir: %s has been removed", s.dbDir)
 }

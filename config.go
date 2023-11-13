@@ -49,6 +49,9 @@ type Options struct {
 	// How long to wait for mongod to start up and report a port number. Does
 	// not include download time, only startup time. Defaults to 10 seconds.
 	StartupTimeout time.Duration
+
+	TempDirFolder  string
+	TempDirPattern string
 }
 
 func (opts *Options) fillDefaults() error {
